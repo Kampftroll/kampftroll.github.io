@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Index</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f9fafb; }
+        .file-card:hover { transform: translateY(-2px); transition: all 0.2s; }
+    </style>
+</head>
+<body class="p-8 md:p-16">
+
+    <div class="max-w-3xl mx-auto">
+        <header class="mb-10">
+            <h1 id="repo-name" class="text-4xl font-bold text-gray-900 tracking-tight">Loading...</h1>
+            <p class="text-gray-500 mt-2">Browse the latest files in this repository.</p>
+        </header>
+
+        <ul id="file-list" class="space-y-3">
+            </ul>
+    </div>
+
+    <script>
+        const repoConfig = {
+            username: "Kampftroll",
+            repo: "kampftroll.github.io"
+        };
+
+        async function fetchFiles() {
+            const listElement = document.getElementById('file-list');
+            const titleElement = document.getElementById('repo-name');
+            titleElement.innerText = repoConfig.repo;
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${repoConfig.username}/${repoConfig.repo}/contents/`);
+                const data = await response.json();
+
+                if (!response.ok) throw new Error("Repo not found");
+
+                listElement.innerHTML = data
+                    .filter(item => item.name !== 'index.html')
+                    .map(file => `
+                        <li>
+                            <a href="${file.download_url || file.html_url}" 
+                               class="file-card block p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-blue-400 flex justify-between items-center group">
+                                <span class="font-medium text-gray-700 group-hover:text-blue-600">${file.name}</span>
+                                <span class="text-xs text-gray-400 uppercase tracking-widest">${file.type}</span>
+                            </a>
+                        </li>
+                    `).join('');
+            } catch (error) {
+                listElement.innerHTML = `<p class="text-red-500">Error loading files: ${error.message}</p>`;
+            }
+        }
+
+        fetchFiles();
+    </script>
+</body>
+</html>
